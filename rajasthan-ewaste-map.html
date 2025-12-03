@@ -55,65 +55,318 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script>
 
-/* ========== Load Rajasthan GeoJSON from external file ==========  
-   Place "rajasthan_districts.geojson" in the same folder as this HTML.  
-   This replaces the huge inline RAJASTHAN_GEOJSON variable.
-=================================================================*/
+let map; 
+let geoLayer;
+const markers = L.layerGroup();
 
-let geoLayer;       // will hold district polygons after loading
-const markers = L.layerGroup(); // markers for recycler locations
-
-// ---------- Your recyclers dataset ----------
+// -------------------- RECYCLERS DATA --------------------
 const recyclers = {
   "JAIPUR": [
-    {name: "M/s ETCO E-Waste Recycler Private Ltd", address: "SB-23, Shilp Bari, VKI Area, Jaipur", activity: "Recycling & Refurbishing", contact: "9829018257", email: "etcoewaste@gmail.com", capacity: "4490 MTA", capacity_num:4490, cto: "30.04.2029", hsw: "31.10.2029"},
-    {name: "M/s Urban Metals", address: "Sitapura, Sanganer, Jaipur", activity: "Dismantling and Recycling", contact: "9509361443", email: "urbanmetalsindia@gmail.com", capacity: "480 MTA", capacity_num:480},
-    {name: "M/s Green Web Recycling", address: "Manda-II, Chomu, Jaipur", activity: "Dismantling & Refurbishing", contact: "9982462926", email: "greenwebrecycling@gmail.com", capacity: "1050 MTA", capacity_num:1050},
-    {name: "M/s Marss Recycler Private Limited", address: "Manda, Chomu, Jaipur", activity: "Dismantling & Refurbishing", contact: "9079852683", email: "marssconnect.jpr@gmail.com", capacity: "700 MTA", capacity_num:700},
-    {name: "M/s Shyam E Waste Recycling", address: "Manda Industrial Area, Chomu, Jaipur", activity: "Recycling & Refurbishing", contact: "8406984597", email: "nirmalshyam.2021@gmail.com", capacity: "3450 MTA", capacity_num:3450},
-    {name: "M/s Telsys Green Web Recycling Pvt. Ltd.", address: "Manda-II, Chomu, Jaipur", activity: "Recycling & Refurbishing", contact: "9782241129", email: "telsysgreenweb@gmail.com", capacity: "13200 MTA", capacity_num:13200},
-    {name: "M/s HULLADEK PWL", address: "Bindayka, Sirsi, Jaipur", activity: "Recycling", contact: "7878940255", email: "hulladekpwl@gmail.com", capacity: "6600 MTA", capacity_num:6600},
-    {name: "M/s S.S. Enviro Care", address: "Sarna Dungar Industrial Area, Jhotawara Extension, Jaipur", activity: "Recycling", contact: "9654463036", email: "mishank3333@gmail.com", capacity: "6600 MTA", capacity_num:6600}
+    {
+      name: "M/s ETCO E-Waste Recycler Private Ltd",
+      address: "SB-23, Shilp Bari, Road No. 14-15, VKI Area, Jaipur",
+      activity: "Recycling & Refurbishing",
+      contact: "9829018257",
+      email: "etcoewaste@gmail.com",
+      capacity: "4490 MTA",
+      capacity_num: 4490,
+      cto_validity: "30.04.2029",
+      hsw_validity: "31.10.2029"
+    },
+    {
+      name: "M/s. Urban Metals",
+      address: "E-2118, Ramchandrapura RIICO Industrial Area, Sitapura, Sanganer, Jaipur",
+      activity: "Dismantling and Recycling",
+      contact: "9509361443",
+      email: "urbanmetalsindia@gmail.com",
+      capacity: "480 MTA",
+      capacity_num: 480,
+      cto_validity: "31.10.2025",
+      hsw_validity: "30.06.2026"
+    },
+    {
+      name: "M/s Green Web Recycling",
+      address: "H1-865, Industrial Area, Manda-II, Chomu, Jaipur",
+      activity: "Dismantling & Refurbishing",
+      contact: "9982462926",
+      email: "greenwebrecycling@gmail.com",
+      capacity: "1050 MTA",
+      capacity_num: 1050,
+      cto_validity: "30.04.2027",
+      hsw_validity: "30.04.2027"
+    },
+    {
+      name: "M/s S.S. Enviro Care",
+      address: "E 216B, Sarna Dungar Industrial Area, Jhotwara Ext., Jaipur",
+      activity: "Recycling",
+      contact: "9654463036",
+      email: "mishank3333@gmail.com",
+      capacity: "6600 MTA",
+      capacity_num: 6600,
+      cto_validity: "31.03.2030",
+      hsw_validity: "31.03.2030"
+    },
+    {
+      name: "M/s Shyam E Waste Recycling",
+      address: "Plot No. G1-107, Manda Industrial Area, Chomu, Jaipur",
+      activity: "Recycling & Refurbishing",
+      contact: "8406984597",
+      email: "nirmalshyam.2021@gmail.com",
+      capacity: "3450 MTA",
+      capacity_num: 3450,
+      cto_validity: "31.05.2030",
+      hsw_validity: "31.05.2030"
+    },
+    {
+      name: "M/s Telsys Green Web Recycling Pvt. Ltd.",
+      address: "E-559, RIICO Industrial Area, Manda-II, Chomu, Jaipur",
+      activity: "Recycling & Refurbishing",
+      contact: "9782241129",
+      email: "telsysgreenweb@gmail.com",
+      capacity: "13200 MTA",
+      capacity_num: 13200,
+      cto_validity: "30.06.2030",
+      hsw_validity: "30.06.2030"
+    },
+    {
+      name: "M/s HULLADEK PWL",
+      address: "F-142, RIICO Industrial Area Bindayka, Sirsi, Jaipur",
+      activity: "Recycling",
+      contact: "7878940255",
+      email: "hulladekpwl@gmail.com",
+      capacity: "6600 MTA",
+      capacity_num: 6600,
+      cto_validity: "31.05.2030",
+      hsw_validity: "30.06.2030"
+    }
   ],
+
   "ALWAR": [
-    {name: "M/s Adatte E-Waste Management Pvt. Ltd.", address: "Karoli, Tapukara Ext, Tijara, Alwar", activity: "Recycling & Dismantling", contact: "9971395011", capacity: "1780 MTA", capacity_num:1780},
-    {name: "M/s Abaad Developers Private Limited", address: "Chopanki Bhiwadi (RIICO)", activity: "Recycling & Refurbishing", contact: "9899970888", capacity: "700 MTA", capacity_num:700},
-    {name: "M/s Greenlet Recyclers Private Limited", address: "Sotanala Industrial Area, Behror", activity: "Dismantling & Refurbishing", contact: "8560891100", capacity: "1500 MTA", capacity_num:1500},
-    {name: "M/s Go Green Management LLP", address: "Khushkhera RIICO, Bhiwadi", activity: "Recycling", contact: "9811977521", capacity: "637 MTA", capacity_num:637},
-    {name: "M/s Tanwar Traders", address: "Tijara, Bhiwadi", activity: "Recycling", contact: "9667215218", capacity: "300 MTA", capacity_num:300},
-    {name: "M/s Universal E-Waste Recycling Private Limited", address: "Chopanki, Bhiwadi", activity: "Recycling & Refurbishing", contact: "9968683340", capacity: "6920 MTA", capacity_num:6920},
-    {name: "M/s HM Waste Management Private Ltd.", address: "Neemrana, Behror", activity: "Recycling", contact: "9999829677", capacity: "3300 MTA", capacity_num:3300},
-    {name: "M/s Ramdass Trading Company", address: "MIA, Ramgarh, Alwar", activity: "Recycling", contact: "9352208422", capacity: "180 MTA", capacity_num:180},
-    {name: "M/s Greenscape Eco Management Pvt. Ltd.", address: "MIA Alwar", activity: "Dismantling/Segregation & Recycling/Refurbishing", contact: "8290333347", capacity: "73494 MTA", capacity_num:73494}
+    {
+      name: "M/s Shukla E-waste Processor",
+      address: "H-309 (B), RIICO Industrial area, Bhiwadi",
+      activity: "Recycling",
+      contact: "8829009424",
+      email: "admi@e-wasteprocessor.com",
+      capacity: "680 MTA",
+      capacity_num: 680,
+      cto_validity: "29.02.2028",
+      hsw_validity: "30.09.2024"
+    },
+    {
+      name: "M/s Adatte E-Waste Management Pvt. Ltd.",
+      address: "F-120, Industrial Area, Karoli, Tapukara Ext., Tijara, Alwar",
+      activity: "Recycling & Dismantling",
+      contact: "9971395011",
+      email: "abhimanyu@gmail.com",
+      capacity: "1780 MTA",
+      capacity_num: 1780,
+      cto_validity: "30.06.2028",
+      hsw_validity: "28.02.2025"
+    },
+    {
+      name: "M/s H.M. E-Waste Management",
+      address: "G1-226 & G1-227, RIICO Area, Kehrani Bhiwadi Ext., Tijara, Alwar",
+      activity: "Recycling & Refurbishing",
+      contact: "9810286509",
+      email: "anandchoudhary@hotmail.com",
+      capacity: "33100 MTA",
+      capacity_num: 33100,
+      cto_validity: "31.06.2030",
+      hsw_validity: "15.08.2026"
+    },
+    {
+      name: "M/s Abaad Developers Private Limited",
+      address: "G1-747 RIICO Industrial Area, Chopanki Bhiwadi, Tijara, Alwar",
+      activity: "Recycling & Refurbishing",
+      contact: "9899970888",
+      email: "nnecoinfo@gmail.com",
+      capacity: "700 MTA",
+      capacity_num: 700,
+      cto_validity: "31.12.2026",
+      hsw_validity: "31.12.2026"
+    },
+    {
+      name: "M/s Greenlet Recyclers Private Limited",
+      address: "G-15-G, Sotanala Industrial Area, Behror, Alwar",
+      activity: "Dismantling & Refurbishing",
+      contact: "8560891100",
+      email: "sushil@greenletrecycler.com",
+      capacity: "1500 MTA",
+      capacity_num: 1500,
+      cto_validity: "31.08.2027",
+      hsw_validity: "31.08.2027"
+    },
+    {
+      name: "M/s Go Green Management LLP",
+      address: "G1-612N, Khushkhera RIICO Ind. Area, Bhiwadi, Alwar",
+      activity: "Recycling",
+      contact: "9811977521",
+      email: "pawan.kumar@gtlservices.in",
+      capacity: "637 MTA",
+      capacity_num: 637,
+      cto_validity: "31.01.2028",
+      hsw_validity: "31.01.2028"
+    },
+    {
+      name: "M/s Greenscape Eco Management Pvt. Ltd.",
+      address: "203 & 203A, MIA Alwar, Tehsil Ramgarh, Alwar",
+      activity: "Dismantling & Recycling & Refurbishing",
+      contact: "8290333347",
+      email: "balgopal@greenscape-eco.com",
+      capacity: "73494 MTA",
+      capacity_num: 73494,
+      cto_validity: "31.10.2029",
+      hsw_validity: "31.10.2029"
+    },
+    {
+      name: "M/s Tanwar Traders",
+      address: "F-1294(E), Industrial Area, Tijara, Bhiwadi, Alwar",
+      activity: "Recycling",
+      contact: "9667215218",
+      email: "tanwartraders2006@gmail.com",
+      capacity: "300 MTA",
+      capacity_num: 300,
+      cto_validity: "31.08.2029",
+      hsw_validity: "31.08.2029"
+    },
+    {
+      name: "M/s Universal E-Waste Recycling Private Limited",
+      address: "G1-742, RIICO Industrial Area, Chopanki, Bhiwadi, Alwar",
+      activity: "Recycling & Refurbishing",
+      contact: "9968683340",
+      email: "universalchopanki@gmail.com",
+      capacity: "6920 MTA",
+      capacity_num: 6920,
+      cto_validity: "31.07.2030",
+      hsw_validity: "31.07.2030"
+    },
+    {
+      name: "M/s HM Waste Management Private Ltd.",
+      address: "H1-137 H, RIICO Industrial Area, Shahjahanpur, Neemrana, Alwar",
+      activity: "Recycling",
+      contact: "9999829677",
+      email: "hmwaste22@gmail.com",
+      capacity: "3300 MTA",
+      capacity_num: 3300,
+      cto_validity: "31.08.2030",
+      hsw_validity: "31.08.2030"
+    },
+    {
+      name: "M/s Ramdass Trading Company",
+      address: "G1-177-C, MIA, Tehsil-Ramgarh, Alwar",
+      activity: "Recycling",
+      contact: "9352208422",
+      email: "ramdastradingcompany@gmail.com",
+      capacity: "180 MTA",
+      capacity_num: 180,
+      cto_validity: "31.12.2028",
+      hsw_validity: "31.12.2028"
+    }
   ],
-  "SIKAR": [ {name: "M/s GS International", contact: "9928274008", capacity: "600 MTA", capacity_num:600}, {name: "M/s Golden Green Recyclers", contact: "9829405710", capacity: "750 MTA", capacity_num:750} ],
-  "BARMER": [ {name: "M/s Fateh Enviro Lab", contact: "9413880789", capacity: "350 MTA", capacity_num:350} ],
-  "CHURU": [ {name: "M/s SAS Tech E-waste Recycling Solutions", contact: "7976054127", capacity: "1050 MTA", capacity_num:1050} ],
-  "DHOLPUR": [ {name: "M/s The Global Metalists", contact: "8800869039", capacity: "604 MTA", capacity_num:604}, {name: "M/s Rohit Pigments Industries Pvt. Ltd.", contact: "8769609584", capacity: "200 MTA", capacity_num:200} ]
+
+  "SIKAR": [
+    {
+      name: "M/s GS International",
+      address: "G1-101, Khatushyam Ji Ind. Complex, Sri Madhopur Ringus, Sikar",
+      activity: "Dismantling & Refurbishing",
+      contact: "9928274008",
+      email: "gsinternationaljaipur@gmail.com",
+      capacity: "600 MTA",
+      capacity_num: 600,
+      cto_validity: "28.02.2027",
+      hsw_validity: "31.12.2024"
+    },
+    {
+      name: "M/s Golden Green Recyclers",
+      address: "G1-11, S.K.S. Industrial Area, Ringus, Sikar",
+      activity: "Dismantling, Recycling & Refurbishing",
+      contact: "9829405710",
+      email: "goldengreenjpr@gmail.com",
+      capacity: "750 MTA",
+      capacity_num: 750,
+      cto_validity: "31.03.2027",
+      hsw_validity: "31.03.2027"
+    }
+  ],
+
+  "BARMER": [
+    {
+      name: "M/s Fateh Enviro Lab",
+      address: "Khasra No. 1036/14, Industrial Area, Jasol, Balotra, Barmer",
+      activity: "Dismantling",
+      contact: "9413880789",
+      email: "aslamcetp@gmail.com",
+      capacity: "350 MTA",
+      capacity_num: 350,
+      cto_validity: "31.12.2026",
+      hsw_validity: "31.12.2026"
+    }
+  ],
+
+  "CHURU": [
+    {
+      name: "M/s SAS Tech E-waste Recycling Solutions",
+      address: "G-286, Road No 1, RIICO Industrial Area, Ratangarh, Churu",
+      activity: "Recycling & Refurbishing",
+      contact: "7976054127",
+      email: "kirancomputech.dd@gmail.com",
+      capacity: "1050 MTA",
+      capacity_num: 1050,
+      cto_validity: "31.12.2028",
+      hsw_validity: "31.12.2028"
+    }
+  ],
+
+  "DHOLPUR": [
+    {
+      name: "M/s The Global Metalists",
+      address: "J-176, RIICO Growth Center, Dholpur",
+      activity: "Dismantling & Refurbishing",
+      contact: "8800869039",
+      email: "global.metalist230@gmail.com",
+      capacity: "604 MTA",
+      capacity_num: 604,
+      cto_validity: "31.03.2028",
+      hsw_validity: "31.03.2028"
+    },
+    {
+      name: "M/s Rohit Pigments Industries Pvt. Ltd.",
+      address: "B-81/B, RIICO Industrial Area, Dholpur",
+      activity: "Refurbishing",
+      contact: "8769609584",
+      email: "rohitpigment_indust@gmail.com",
+      capacity: "200 MTA",
+      capacity_num: 200,
+      cto_validity: "30.09.2030",
+      hsw_validity: "30.09.2030"
+    }
+  ]
 };
 
-// ---------- Utility: normalize district names ----------
-function getFeatureDistrictName(feature){
-  const p = feature.properties || {};
-  const keys = ['DISTRICT','district','NAME_2','name','NAME','NAME_1','DIST_NAME','DIST'];
-  for(const k of keys){ if(p[k]) return p[k].toString().trim(); }
-  if(feature.id) return feature.id.toString();
-  return 'UNKNOWN';
+
+// -------------------- GET DISTRICT NAME --------------------
+function getDistrictName(feature){
+  const p = feature.properties;
+  return (
+    p.DISTRICT || p.district || p.NAME_2 || p.NAME || 
+    p.name || p.DIST_NAME || p.DIST
+  )?.toString().trim() || "UNKNOWN";
 }
-// ---------- Compute District Totals ----------
-function computeDistrictTotals(recyclers){
+
+// -------------------- CHOROPLETH CALCULATIONS --------------------
+function computeDistrictTotals(){
   const totals = {};
   for(const [dist, list] of Object.entries(recyclers)){
-    let sum = 0; for(const r of list){ sum += (r.capacity_num||0); }
-    totals[dist.toUpperCase()] = {sum, count:list.length};
+    totals[dist.toUpperCase()] = {
+      sum: list.reduce((a,b)=>a+(b.capacity_num||0),0),
+      count: list.length
+    };
   }
   return totals;
 }
+const districtTotals = computeDistrictTotals();
 
-const districtTotals = computeDistrictTotals(recyclers);
-
-
-// ---------- Choropleth Color ----------
 function getColor(d){
   return d > 20000 ? '#08306b' :
          d > 10000 ? '#08519c' :
@@ -125,215 +378,134 @@ function getColor(d){
 }
 
 function style(feature){
-  const name = (getFeatureDistrictName(feature)||'').toUpperCase();
-  const total = districtTotals[name] ? districtTotals[name].sum : 0;
-  return {weight:1, color:'#444', fillOpacity:0.8, fillColor:getColor(total)};
+  const name = getDistrictName(feature).toUpperCase();
+  const val = districtTotals[name]?.sum || 0;
+
+  return {
+    weight:1,
+    color:"#444",
+    fillOpacity:0.8,
+    fillColor:getColor(val)
+  };
 }
 
-
-// ---------- Load GeoJSON from File ----------
+// -------------------- LOAD GEOJSON --------------------
 fetch("./rajasthan_districts.geojson")
-  .then(res => res.json())
+  .then(r => r.json())
   .then(data => {
-    RAJASTHAN_GEOJSON = data;
-    initializeMap();
+    initializeMap(data);
   })
-  .catch(err => console.error("Failed to load Rajasthan GeoJSON:", err));
+  .catch(err => console.error("GeoJSON Load Failed:", err));
 
-function initializeMap() {
-    const map = L.map("map").setView([26.9, 75.8], 7);
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: "© OpenStreetMap"
-    }).addTo(map);
+// -------------------- INITIALIZE MAP --------------------
+function initializeMap(geoJSON){
 
-    const markers = L.layerGroup().addTo(map);
+  map = L.map("map").setView([26.9,75.8], 7);
 
-    const districtLayer = L.geoJSON(RAJASTHAN_GEOJSON, {
-        style: {
-            color: "#333",
-            weight: 1,
-            fillColor: "#cce5ff",
-            fillOpacity: 0.6
-        },
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom:19
+  }).addTo(map);
 
-        onEachFeature: function (feature, layer) {
+  markers.addTo(map);
 
-            layer.on("click", () => {
-                const name = getDistrictName(feature).toUpperCase();
-                const list = recyclers[name] || [];
+  geoLayer = L.geoJSON(geoJSON, {
+    style,
+    onEachFeature: (feature, layer)=>{
+      const name = getDistrictName(feature).toUpperCase();
 
-                // Popup content
-                let popup = `<b>${name}</b><br/>`;
+      // hover
+      layer.on("mouseover", ()=> layer.setStyle({fillOpacity:1}));
+      layer.on("mouseout", ()=> geoLayer.resetStyle(layer));
 
-                if (list.length === 0) {
-                    popup += `<em>No recyclers available</em>`;
-                } else {
-                    popup += `<ul style="padding-left:16px;max-height:200px;overflow:auto">`;
-                    popup += list
-                        .map(
-                            r => `
-                                <li>
-                                    <b>${r.name}</b><br/>
-                                    ${r.activity || ""}<br/>
-                                    Capacity: ${r.capacity || "N/A"}
-                                </li>
-                            `
-                        )
-                        .join("");
-                    popup += "</ul>";
-                }
-
-                layer.bindPopup(popup).openPopup();
-
-                // Update Right Side Panel
-                updateSidePanel(name, list);
-
-                // Clear old markers
-                markers.clearLayers();
-
-                // Add markers if coords exist
-                for (const r of list) {
-                    if (r.coords) {
-                        L.marker(r.coords)
-                            .addTo(markers)
-                            .bindPopup(r.name);
-                    }
-                }
-            });
-
-            // Hover effects
-            layer.on("mouseover", () => {
-                layer.setStyle({ fillColor: "#99ccff" });
-            });
-            layer.on("mouseout", () => {
-                districtLayer.resetStyle(layer);
-            });
-        }
-    }).addTo(map);
-
-    map.fitBounds(districtLayer.getBounds());
-}
-
-function getDistrictName(feature) {
-    const p = feature.properties;
-    return (
-        p.DISTRICT ||
-        p.district ||
-        p.NAME_2 ||
-        p.NAME ||
-        p.name ||
-        p.DIST_NAME ||
-        p.DIST
-    )?.toString().trim() || "UNKNOWN";
-}
-
-function updateSidePanel(name, list) {
-    const panel = document.getElementById("info");
-    let html = `<h3>${name}</h3>`;
-
-    if (list.length === 0) {
-        html += `<p>No recyclers available.</p>`;
-    } else {
-        html += list
-            .map(
-                r => `
-                <div style="background:#fff;padding:8px;margin-bottom:10px;border-radius:6px;">
-                    <strong>${r.name}</strong><br/>
-                    ${r.activity || ""}<br/>
-                    Address: ${r.address || "N/A"}<br/>
-                    Contact: ${r.contact || "N/A"}<br/>
-                    Email: ${r.email || "N/A"}<br/>
-                    Capacity: ${r.capacity || "N/A"}
-                </div>
-            `
-            )
-            .join("");
+      // click
+      layer.on("click", ()=>{
+        const list = recyclers[name] || [];
+        openDistrictPopup(layer, name, list);
+        updateSidePanel(name, list);
+        updateMarkers(list);
+      });
     }
+  }).addTo(map);
 
-    panel.innerHTML = html;
+  map.fitBounds(geoLayer.getBounds());
 }
 
-// ---------- Feature Events ----------
-function onEachFeature(feature, layer){
-  const nameRaw = getFeatureDistrictName(feature);
-  const name = nameRaw ? nameRaw.trim() : "UNKNOWN";
-  const key = name.toUpperCase();
 
-  layer.on({
-    mouseover: e => e.target.setStyle({weight:2, color:'#000'}),
-    mouseout:  e => geoLayer.resetStyle(e.target),
-    click:     e => {
-      const list = recyclers[key] || [];
-      const popup = [];
+// -------------------- POPUP --------------------
+function openDistrictPopup(layer, name, list){
 
-      popup.push(`<strong>${name}</strong>`);
-      if(list.length === 0){
-        popup.push('<div><em>No recyclers found.</em></div>');
-      } else {
-        popup.push('<ul style="max-height:200px;overflow:auto;padding-left:14px">');
-        popup.push(
-          list.map(it => `
-            <li>
-              <strong>${it.name}</strong><br/>
-              ${it.activity || ''}<br/>
-              Contact: ${it.contact || 'N/A'}<br/>
-              Capacity: ${it.capacity || 'N/A'}
-            </li>
-          `).join('')
-        );
-        popup.push('</ul>');
-      }
+  let html = `<b>${name}</b><br/>`;
 
-      layer.bindPopup(popup.join('')).openPopup();
-      populateSidePanel(name, list);
+  if(list.length === 0){
+    html += "<em>No recyclers available</em>";
+  } else {
+    html += `<ul style="max-height:200px;overflow:auto;padding-left:16px;">`;
+    html += list.map(r=>`
+      <li>
+        <b>${r.name}</b><br/>
+        ${r.activity||""}<br/>
+        Capacity: ${r.capacity||"N/A"}
+      </li>
+    `).join("");
+    html += "</ul>";
+  }
 
-      markers.clearLayers();
-      for(const r of list){
-        if(r.coords) L.marker(r.coords).addTo(markers).bindPopup(r.name);
-      }
+  layer.bindPopup(html).openPopup();
+}
+
+
+// -------------------- SIDE PANEL --------------------
+function updateSidePanel(name, list){
+  const panel = document.getElementById("info");
+
+  let html = `<h3>${name}</h3>`;
+
+  if(list.length === 0){
+    html += `<p>No recyclers available.</p>`;
+  } else {
+    html += list.map(r=>`
+      <div style="background:#fff;padding:8px;margin-bottom:10px;border-radius:6px;">
+        <strong>${r.name}</strong><br/>
+        ${r.activity||""}<br/>
+        Address: ${r.address||"N/A"}<br/>
+        Contact: ${r.contact||"N/A"}<br/>
+        Email: ${r.email||"N/A"}<br/>
+        Capacity: ${r.capacity||"N/A"}
+      </div>
+    `).join("");
+  }
+
+  panel.innerHTML = html;
+}
+
+
+// -------------------- MARKERS --------------------
+function updateMarkers(list){
+  markers.clearLayers();
+
+  list.forEach(r=>{
+    if(r.coords){
+      L.marker(r.coords)
+        .addTo(markers)
+        .bindPopup(r.name);
     }
   });
 }
 
 
-// ---------- Side Panel ----------
-function populateSidePanel(name, list){
-  const info = document.getElementById('info');
-  let html = `<h3>${name}</h3>`;
-
-  if(!list || list.length === 0){
-    html += "<p>No recyclers available.</p>";
-  } else {
-    html += list.map(it => `
-      <div style="margin-bottom:10px;padding:8px;background:#fff;border-radius:6px;">
-        <strong>${it.name}</strong>
-        <div>${it.activity || ''}</div>
-        <div>Address: ${it.address || 'N/A'}</div>
-        <div>Contact: ${it.contact || 'N/A'}</div>
-        <div>Email: ${it.email || 'N/A'}</div>
-        <div>Capacity: ${it.capacity || 'N/A'}</div>
-      </div>
-    `).join('');
-  }
-
-  info.innerHTML = html;
-}
-
-
-// ---------- Search ----------
-document.getElementById('btnSearch').addEventListener('click', ()=>{
-  const q = document.getElementById('districtSearch').value.trim().toUpperCase();
+// -------------------- SEARCH --------------------
+document.getElementById("btnSearch").addEventListener("click", ()=>{
+  const q = document.getElementById("districtSearch").value.trim().toUpperCase();
   if(!q) return;
 
   let found = false;
 
-  geoLayer.eachLayer(layer => {
-    const name = getFeatureDistrictName(layer.feature).trim().toUpperCase();
+  geoLayer.eachLayer(layer=>{
+    const name = getDistrictName(layer.feature).toUpperCase();
     if(name === q){
-      map.fitBounds(layer.getBounds(),{maxZoom:10});
-      layer.fire('click');
+      map.fitBounds(layer.getBounds());
+      layer.fire("click");
       found = true;
     }
   });
@@ -341,19 +513,20 @@ document.getElementById('btnSearch').addEventListener('click', ()=>{
   if(!found) alert("District not found.");
 });
 
-document.getElementById('districtSearch').addEventListener('keydown', e=>{
-  if(e.key === 'Enter') document.getElementById('btnSearch').click();
+document.getElementById("districtSearch").addEventListener("keydown", e=>{
+  if(e.key === "Enter") document.getElementById("btnSearch").click();
 });
 
 
-// ---------- Reset ----------
-document.getElementById('resetBtn').addEventListener('click', ()=>{
-  if(geoLayer) map.fitBounds(geoLayer.getBounds());
+// -------------------- RESET --------------------
+document.getElementById("resetBtn").addEventListener("click", ()=>{
   markers.clearLayers();
-  document.getElementById('info').innerHTML = "<p>Select a district.</p>";
+  map.fitBounds(geoLayer.getBounds());
+  document.getElementById("info").innerHTML = "<p>Select a district.</p>";
 });
 
 </script>
+
 
 </body>
 </html>
